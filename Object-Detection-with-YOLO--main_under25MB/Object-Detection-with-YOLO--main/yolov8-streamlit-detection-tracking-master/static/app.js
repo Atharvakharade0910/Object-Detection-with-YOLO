@@ -285,7 +285,14 @@ $('downloadImage').onclick=()=>{if(state.result?.url){const link=document.create
 $('downloadJson').onclick=()=>download(new Blob([JSON.stringify(reportData(),null,2)],{type:'application/json'}),'yolo-studio-report.json');
 $('downloadCsv').onclick=()=>{const r=state.result,rows=r.detections?[['object','confidence','x1','y1','x2','y2'],...r.detections.map(d=>[d.name,d.confidence,...d.box])]:[['object','frame_detections'],...Object.entries(r.counts)];download(new Blob([rows.map(row=>row.map(value=>`"${String(value).replaceAll('"','""')}"`).join(',')).join('\r\n')],{type:'text/csv'}),'yolo-studio-report.csv');};
 $('printReport').onclick=()=>window.print();
-document.addEventListener('keydown',event=>{if(event.ctrlKey&&event.key==='Enter'&&!$('loginDialog').open&&!$('accountDialog').open){event.preventDefault();$('runButton').click();}});
+document.addEventListener('keydown',event=>{
+  if(event.ctrlKey&&event.key==='Enter'&&!$('loginDialog').open&&!$('accountDialog').open){event.preventDefault();$('runButton').click();return;}
+  if(event.key==='Escape'&&!$('loginDialog').open&&!$('accountDialog').open){
+    if(state.selectedObject!==null){selectObject(null);notify('Object highlight cleared.');}
+    else if(state.live){stopLive();notify('Live detection stopped.');}
+    else if(state.job){$('cancelJob').click();notify('Cancelling video analysis…');}
+  }
+});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.stream){stopCamera();notify('Camera stopped while the workspace is in the background.');}});
 window.addEventListener('pagehide',()=>{state.stream?.getTracks().forEach(track=>track.stop());});
 (async()=>{try{await api('/api/health');$('engineStatus').textContent='Engine online';const session=await api('/api/session');if(session.user)await initializeUser(session.user);else $('loginDialog').showModal();}catch(error){$('engineStatus').textContent='Connection issue';notify(error.message,true);if(!$('loginDialog').open)$('loginDialog').showModal();}})();
