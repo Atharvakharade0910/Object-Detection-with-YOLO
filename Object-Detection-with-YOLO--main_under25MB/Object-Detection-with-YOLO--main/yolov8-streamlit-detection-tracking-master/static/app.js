@@ -62,7 +62,7 @@ function clearMedia(){
 function changeSource(source){
   if(state.busy||state.job||state.live) return;
   stopCamera();clearMedia();resetResults();state.source=source;state.generation++;
-  document.querySelectorAll('[data-source]').forEach(button=>{const active=button.dataset.source===source;button.classList.toggle('active',active);button.setAttribute('aria-selected',active);});
+  document.querySelectorAll('[data-source]').forEach(button=>{const active=button.dataset.source===source;button.classList.toggle('active',active);button.setAttribute('aria-selected',active);button.tabIndex=active?0:-1;});
   $('sourceBadge').textContent=source.toUpperCase(); $('uploadZone').hidden=source==='webcam';
   $('cameraButton').hidden=source!=='webcam'; $('sampleButton').hidden=source!=='image';
   $('trackingRow').hidden=source!=='video';$('jobPanel').hidden=true;
@@ -263,7 +263,16 @@ $('closeAccount').onclick=()=>$('accountDialog').close();
 $('logoutButton').onclick=async()=>{if(state.job){$('accountError').textContent='Wait for the video or cancel it before signing out.';return;}try{stopCamera();await api('/api/logout',jsonRequest('POST',{}));state.user=null;state.ready=false;clearMedia();resetResults();$('accountDialog').close();$('loginDialog').showModal();controls();}catch(error){$('accountError').textContent=error.message;}};
 $('addUserForm').onsubmit=async event=>{event.preventDefault();try{await api('/api/users',jsonRequest('POST',{username:$('newUsername').value,password:$('newPassword').value}));event.target.reset();await refreshUsers();$('accountError').textContent='';notify('User added.');}catch(error){$('accountError').textContent=error.message;}};
 $('changePasswordForm').onsubmit=async event=>{event.preventDefault();try{await api('/api/users',jsonRequest('PUT',{current:$('currentPassword').value,password:$('changedPassword').value}));event.target.reset();$('accountError').textContent='';notify('Administrator password updated.');}catch(error){$('accountError').textContent=error.message;}};
-document.querySelectorAll('[data-source]').forEach(button=>button.onclick=()=>changeSource(button.dataset.source));
+document.querySelectorAll('[data-source]').forEach(button=>{
+  button.onclick=()=>changeSource(button.dataset.source);
+  button.onkeydown=event=>{
+    const tabs=[...document.querySelectorAll('[data-source]')];
+    const current=tabs.indexOf(button);
+    const target=event.key==='Home'?0:event.key==='End'?tabs.length-1:event.key==='ArrowLeft'?(current-1+tabs.length)%tabs.length:event.key==='ArrowRight'?(current+1)%tabs.length:-1;
+    if(target<0)return;
+    event.preventDefault();tabs[target].focus();tabs[target].click();
+  };
+});
 document.querySelectorAll('[data-inspector]').forEach(button=>button.onclick=()=>inspectorTab(button.dataset.inspector));
 $('uploadZone').onclick=()=>$('fileInput').click();$('fileInput').onchange=event=>acceptFile(event.target.files[0]);
 ['dragenter','dragover'].forEach(name=>$('uploadZone').addEventListener(name,event=>{event.preventDefault();$('uploadZone').classList.add('dragging');}));

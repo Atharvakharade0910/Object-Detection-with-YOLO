@@ -24,6 +24,15 @@ def test_auth_and_origin_boundary(client):
     assert client.get('/api/health').json['frontend'] == 'HTML / CSS / JavaScript'
     assert b'/static/app.js' in client.get('/').data
 
+def test_source_tabs_support_keyboard_navigation(client):
+    page = client.get('/').get_data(as_text=True)
+    script = (server.ROOT/'static/app.js').read_text(encoding='utf-8')
+    assert 'role="tablist"' in page
+    assert page.count('tabindex="-1" data-source=') == 2
+    assert 'button.tabIndex=active?0:-1' in script
+    for key in ('ArrowLeft', 'ArrowRight', 'Home', 'End'):
+        assert f"event.key==='{key}'" in script
+
 def test_real_detection_and_class_filter(client):
     response = client.post('/api/detect', data=image_form())
     assert response.status_code == 200
