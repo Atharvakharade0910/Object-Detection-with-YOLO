@@ -67,7 +67,7 @@ function changeSource(source){
   $('cameraButton').hidden=source!=='webcam'; $('sampleButton').hidden=source!=='image';
   $('trackingRow').hidden=source!=='video';$('jobPanel').hidden=true;
   $('uploadTitle').textContent=source==='video'?'Drop a video here':'Drop an image here';
-  $('uploadTypes').textContent=source==='video'?'MP4, MOV, AVI, WEBM · 100 MB / 2 min':'JPG, PNG, WEBP · up to 100 MB';
+  $('uploadTypes').textContent=source==='video'?'MP4, MOV, AVI, MKV, WEBM · 100 MB / 2 min':'JPG, PNG, WEBP, BMP · up to 100 MB';
   $('fileInput').accept=source==='video'?'.mp4,.mov,.avi,.mkv,.webm':'image/jpeg,image/png,image/webp,image/bmp';
   $('fileInput').value=''; document.querySelector('.overlay-controls').hidden=source==='video'; controls();
 }

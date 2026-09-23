@@ -33,6 +33,13 @@ def test_source_tabs_support_keyboard_navigation(client):
     for key in ('ArrowLeft', 'ArrowRight', 'Home', 'End'):
         assert f"event.key==='{key}'" in script
 
+def test_upload_hints_disclose_every_supported_format(client):
+    page = client.get('/').get_data(as_text=True)
+    script = (server.ROOT/'static/app.js').read_text(encoding='utf-8')
+    assert 'JPG, PNG, WEBP, BMP · up to 100 MB' in page
+    assert 'JPG, PNG, WEBP, BMP · up to 100 MB' in script
+    assert 'MP4, MOV, AVI, MKV, WEBM · 100 MB / 2 min' in script
+
 def test_real_detection_and_class_filter(client):
     response = client.post('/api/detect', data=image_form())
     assert response.status_code == 200
