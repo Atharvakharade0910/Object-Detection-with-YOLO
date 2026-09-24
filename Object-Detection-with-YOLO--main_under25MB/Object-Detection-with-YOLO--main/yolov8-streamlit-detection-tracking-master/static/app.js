@@ -136,7 +136,7 @@ function draw(){
 }
 function inspectorTab(tab){
   state.inspector=tab;
-  document.querySelectorAll('[data-inspector]').forEach(button=>button.classList.toggle('active',button.dataset.inspector===tab));
+  document.querySelectorAll('[data-inspector]').forEach(button=>{const active=button.dataset.inspector===tab;button.classList.toggle('active',active);button.setAttribute('aria-selected',active);button.tabIndex=active?0:-1;});
   const populated=!!state.result&&Object.keys(state.result.counts||{}).length>0;
   $('detectionList').hidden=!populated||tab!=='objects'||!state.result?.detections;
   $('summaryList').hidden=!populated||tab!=='summary';
@@ -273,7 +273,16 @@ document.querySelectorAll('[data-source]').forEach(button=>{
     event.preventDefault();tabs[target].focus();tabs[target].click();
   };
 });
-document.querySelectorAll('[data-inspector]').forEach(button=>button.onclick=()=>inspectorTab(button.dataset.inspector));
+document.querySelectorAll('[data-inspector]').forEach(button=>{
+  button.onclick=()=>inspectorTab(button.dataset.inspector);
+  button.onkeydown=event=>{
+    const tabs=[...document.querySelectorAll('[data-inspector]')];
+    const current=tabs.indexOf(button);
+    const target=event.key==='Home'?0:event.key==='End'?tabs.length-1:event.key==='ArrowLeft'?(current-1+tabs.length)%tabs.length:event.key==='ArrowRight'?(current+1)%tabs.length:-1;
+    if(target<0)return;
+    event.preventDefault();tabs[target].focus();tabs[target].click();
+  };
+});
 $('uploadZone').onclick=()=>$('fileInput').click();$('fileInput').onchange=event=>acceptFile(event.target.files[0]);
 ['dragenter','dragover'].forEach(name=>$('uploadZone').addEventListener(name,event=>{event.preventDefault();$('uploadZone').classList.add('dragging');}));
 ['dragleave','drop'].forEach(name=>$('uploadZone').addEventListener(name,event=>{event.preventDefault();$('uploadZone').classList.remove('dragging');}));
